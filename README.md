@@ -29,6 +29,7 @@
 8. [設計図（データベース・URL・API）](#8-設計図データベースurlapi)
 9. [こまったときは](#9-こまったときは)
 10. [提出前チェックリスト](#10-提出前チェックリスト)
+- [起動のしかた（Docker）](#起動のしかたdocker) / [Laravel 初期設定マニュアル](docs/laravel-setup.md)
 
 ---
 
@@ -401,33 +402,36 @@ function flow(post) {
 
 ---
 
-## 起動のしかた（#2 で A さんが書き直す）
+## 起動のしかた（Docker）
 
-> ⚠️ 授業で使っている Laravel の環境（Docker / Sail など）があれば、**その手順に合わせて書き直してください**。下は、PHP と Composer が入っている場合の例です。
+> 📘 **はじめて Laravel を作る手順（A さん・#2 / #3）は [docs/laravel-setup.md](docs/laravel-setup.md) にまとめています。**
+> 下は、A さんの PR がマージされたあとに **B・C さんが自分のパソコンで動かす手順** です。`app` は `docker-compose.yml` の PHP のサービス名に置きかえてください。
 
 ```bash
-git clone <このリポジトリのURL>
+git switch main
 ```
 ```bash
-cd <リポジトリ名>
+git pull origin main
 ```
 ```bash
-composer install
+docker compose up -d
 ```
 ```bash
-cp .env.example .env
+docker compose exec app composer install
 ```
 ```bash
-php artisan key:generate
+docker compose exec app cp .env.example .env
 ```
 ```bash
-php artisan migrate --seed
+docker compose exec app php artisan key:generate
 ```
 ```bash
-php artisan serve
+docker compose exec app php artisan migrate:fresh --seed
 ```
 
-ブラウザで開く:
-- 参加者: http://localhost:8000/
-- スクリーン: http://localhost:8000/screen
-- 講演者: http://localhost:8000/speaker
+ブラウザで開く（ポートは `docker-compose.yml` の `ports:` に合わせる）:
+- 参加者: http://localhost:8080/
+- スクリーン: http://localhost:8080/screen
+- 講演者: http://localhost:8080/speaker
+
+うまく動かないときは [docs/laravel-setup.md の「こまったとき」](docs/laravel-setup.md#こまったとき) を見てください。

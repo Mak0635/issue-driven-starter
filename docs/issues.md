@@ -28,6 +28,8 @@ GitHub で **New issue → 「タスク」** を選び、下の各カードの�
 担当: A / 目安 1時間 / ラベル: `担当:A` `MVP`
 
 ### 概要
+📘 手順は [docs/laravel-setup.md](laravel-setup.md) の 0〜8 を見ながら進める。
+
 みんなが作業する土台（Laravel）を用意する。これが終わるまで B・C は `mockups/` の HTML で作業する。
 
 ### やること
@@ -56,6 +58,8 @@ GitHub で **New issue → 「タスク」** を選び、下の各カードの�
 担当: A / 目安 1時間 / ラベル: `担当:A` `MVP`
 
 ### 概要
+📘 手順は [docs/laravel-setup.md](laravel-setup.md) の 9〜11 を見ながら進める。
+
 質問・感想・リアクションを保存する場所（黒板）を作る。
 
 ### やること
