@@ -31,6 +31,7 @@
 - POST の返事が `!res.ok` なら `getState()` で取り直して描き直す
 - 初心者が読むコードなので、何をしているかを日本語のコメントで短く書く
 - 手順書: `docs/laravel-setup.md`（環境）、`docs/api-guide.md`（API）、`docs/issues.md`（タスク）
+- `docs/ai-context.md` は Claude Code 以外の AI に貼る、このファイルと同じ内容の説明。ルールを変えたら両方直す
 
 ## 終わったら
 - 変更したファイルと、確認のしかた（ブラウザで何を見ればいいか）を伝える

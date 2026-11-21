@@ -29,7 +29,7 @@
 8. [設計図（データベース・URL・API）](#8-設計図データベースurlapi)
 9. [こまったときは](#9-こまったときは)
 10. [提出前チェックリスト](#10-提出前チェックリスト)
-- [起動のしかた（Docker）](#起動のしかたdocker) / [Laravel 初期設定マニュアル](docs/laravel-setup.md) / [API の作り方](docs/api-guide.md) / [AI への頼み方](docs/ai-prompts.md)
+- [起動のしかた（Docker）](#起動のしかたdocker) / [Laravel 初期設定マニュアル](docs/laravel-setup.md) / [API の作り方](docs/api-guide.md) / [AI への頼み方](docs/ai-prompts.md) / [AI に最初に貼る説明](docs/ai-context.md)
 
 ---
 
