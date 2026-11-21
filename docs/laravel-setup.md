@@ -284,6 +284,7 @@ resources/views/
 </head>
 <body class="@yield('body_class', 'bg-slate-50 text-slate-900')">
     @yield('content')
+    <script src="{{ asset('js/api.js') }}"></script>
     @stack('scripts')
 </body>
 </html>
@@ -294,6 +295,7 @@ resources/views/
 | `csrf-token` | POST するときに JS が読む合言葉（README「共通の fetch のしかた」で使う） |
 | `cdn.tailwindcss.com` | Tailwind を使えるようにする（CSS ファイルは書かない） |
 | `@yield('content')` | 各画面の中身が入る場所 |
+| `js/api.js` | 3画面で共通の fetch の部品（[docs/ai-prompts.md](ai-prompts.md) に見本）。各画面の JS より先に読み込む |
 | `@stack('scripts')` | 各画面の `<script>` が入る場所 |
 
 `resources/views/participant.blade.php`（`screen` と `speaker` も同じ形で、文字と JS のファイル名だけ変える）
@@ -329,7 +331,7 @@ docker compose exec app mkdir -p public/js
 ```
 
 ```bash
-docker compose exec app touch public/js/participant.js public/js/screen.js public/js/speaker.js
+docker compose exec app touch public/js/api.js public/js/participant.js public/js/screen.js public/js/speaker.js
 ```
 
 B さんは `participant.js`、C さんは `screen.js` と `speaker.js` に書きます（担当ファイルが分かれているので、コンフリクトしにくい）。
