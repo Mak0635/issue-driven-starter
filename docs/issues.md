@@ -139,6 +139,7 @@ GitHub で **New issue → 「タスク」** を選び、下の各カードの�
 
 ## #7 投稿の一覧・保存 API を作る
 担当: A / 目安 1.5時間 / ラベル: `担当:A` `MVP`
+📘 手順とコードは [docs/api-guide.md](api-guide.md) を見ながら進める。
 **B・C がこれを待っているので、A の API の中で一番先にやる**
 
 ### やること
@@ -161,6 +162,7 @@ GitHub で **New issue → 「タスク」** を選び、下の各カードの�
 
 ## #8 リアクション（絵文字・聞きたい・共感）API を作る
 担当: A / 目安 1時間 / ラベル: `担当:A` `MVP`
+📘 手順とコードは [docs/api-guide.md](api-guide.md) を見ながら進める。
 
 ### やること
 - [ ] `POST /api/posts/{post}/reactions` に `{ "kind": "👀" }` を受け取る
@@ -174,6 +176,7 @@ GitHub で **New issue → 「タスク」** を選び、下の各カードの�
 
 ## #9 「回答する」「回答済み」API を作る
 担当: A / 目安 1時間 / ラベル: `担当:A` `MVP`
+📘 手順とコードは [docs/api-guide.md](api-guide.md) を見ながら進める。
 
 ### やること
 - [ ] `POST /api/posts/{post}/answer` … 今 `answering` の質問を `answered` にしてから、この質問を `answering` に
