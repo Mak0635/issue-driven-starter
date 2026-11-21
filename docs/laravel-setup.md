@@ -6,6 +6,9 @@ Issue **#2**（Laravel プロジェクトを作る）と **#3**（データベ�
 > 📝 このマニュアルのコマンドに出てくる `app` は、**`docker-compose.yml` の `services:` の下に書いてある PHP のコンテナ名** です。`php` や `laravel` などになっていたら、そこを置きかえてください。
 > `db` も同じで、データベースのコンテナ名です。
 
+> 🎯 **目指す完成形はプロトタイプのバージョン10です**: https://claude.ai/artifact/LyYXL8LSSM2NpAekLbBFkh
+> このマニュアルの最後のサンプルデータは、プロトタイプを開いたときと同じ投稿・同じ反応の数になるようにしてあります。画面を作るときに見比べやすくするためです。
+
 ---
 
 ## 目次
@@ -24,6 +27,7 @@ Issue **#2**（Laravel プロジェクトを作る）と **#3**（データベ�
 | 9 | [モデルと表（マイグレーション）を作る](#9-モデルと表マイグレーションを作る) | #3 |
 | 10 | [サンプルデータ（シーダー）を作る](#10-サンプルデータシーダーを作る) | #3 |
 | 11 | [表を作って確認 → PR](#11-表を作って確認--pr) | #3 |
+| ー | [セットアップのあと：プロトタイプとの対応](#セットアップのあとプロトタイプとの対応) | ー |
 | ー | [あとから参加する人の手順（B・C）](#あとから参加する人の手順b--c) | ー |
 | ー | [こまったとき](#こまったとき) | ー |
 
@@ -114,6 +118,15 @@ DB_PASSWORD=password
 - `DB_HOST` は `localhost` ではなく **DB のサービス名**（例: `db`）。いちばんよくある間違いです。
 - `DB_CONNECTION=sqlite` になっていて、その下の行が `#` でコメントになっていたら、`#` を外して書きかえます。
 - `.env` は **Git に入りません**（パスワードが入るため）。同じ内容を `.env.example` にも書いておくと、B・C さんが楽になります。
+
+同じ `.env` の中で、`SESSION_DRIVER` の行も書きかえます（100人で使っても重くならないようにするため）。
+
+```
+SESSION_DRIVER=file
+```
+
+- Laravel 11 は最初 `database` になっていて、画面が `/api/state` を呼ぶたびに（参加者100人なら毎秒30回以上）データベースに書き込みが起きます。`file` にすると、この書き込みがなくなります。
+- セッションは「匿名のしるし（`visitor_id`）」に使うので、なくしてはいけません。保存場所を変えるだけです。
 
 アプリの鍵は `create-project` が作ってくれます。`.env` の `APP_KEY=` が空のときだけ、次を実行します。
 
@@ -460,26 +473,55 @@ class Reaction extends Model
 docker compose exec app php artisan make:seeder PostSeeder
 ```
 
-`database/seeders/PostSeeder.php` の `run()`
+`database/seeders/PostSeeder.php`
 
 ```php
-public function run(): void
-{
-    $posts = [
-        ['type' => 'question', 'body' => '学生のうちにやっておくべきことは何ですか？'],
-        ['type' => 'question', 'body' => '失敗したときはどうやって立ち直りましたか？'],
-        ['type' => 'question', 'body' => 'エンジニアとして一番大事にしていることは？'],
-        ['type' => 'comment',  'body' => 'チームの話がとても参考になりました！'],
-        ['type' => 'comment',  'body' => 'スライドが見やすいです'],
-    ];
+<?php
 
-    foreach ($posts as $post) {
-        \App\Models\Post::create($post);
+namespace Database\Seeders;
+
+use App\Models\Post;
+use Illuminate\Database\Seeder;
+
+class PostSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // プロトタイプ（バージョン10）を開いたときと同じ投稿と反応の数
+        // [種類, 本文, 状態, [反応の種類 => 人数]]  ※この順番＝届いた順
+        $samples = [
+            ['question', '失敗した時、どうやって立ち直りましたか？', 'answering',
+                ['🤔' => 3, '👀' => 4, 'like' => 18, 'heart' => 7]],
+            ['question', '今の仕事を選んだ決め手は何でしたか？迷った選択肢があれば知りたいです。', 'open',
+                ['👀' => 5, '💡' => 3, '🙌' => 2]],
+            ['comment', '「完璧より先に出す」は自分にも刺さった。まず提出してみる。', 'open',
+                ['💯' => 6, '🙌' => 4, '😂' => 1]],
+            ['question', 'チームで意見がぶつかった時、どう決めていましたか？', 'open',
+                ['🤔' => 4, '👀' => 2]],
+            ['comment', 'わかる、自分もそこで迷った', 'open',
+                ['👏' => 2]],
+        ];
+
+        foreach ($samples as [$type, $body, $status, $reactions]) {
+            $post = Post::create(['type' => $type, 'body' => $body, 'status' => $status]);
+
+            // 「◯人が押した」を、架空の人（seed-1, seed-2 …）で作る
+            foreach ($reactions as $kind => $count) {
+                for ($i = 1; $i <= $count; $i++) {
+                    $post->reactions()->create(['kind' => $kind, 'visitor_id' => "seed-{$i}"]);
+                }
+            }
+        }
     }
 }
 ```
 
-> サンプルの文はプロトタイプの投稿に合わせて自由に変えて OK です。
+| 書き方 | 意味 |
+| --- | --- |
+| `'answering'` | 1つ目の質問を「いま回答中」にしておく。参加者画面とスクリーンのバナーがすぐ確認できる |
+| `foreach ($samples as [$type, $body, ...])` | 配列の中身を、順番に名前をつけて取り出す書き方 |
+| `$post->reactions()->create([...])` | モデルに書いた `hasMany` を使って、この投稿の反応を作る。`post_id` は自動で入る |
+| `"seed-{$i}"` | 同じ人が同じ反応を2回押せない（ユニーク）ので、人数分ちがう名前にする |
 
 `database/seeders/DatabaseSeeder.php` の `run()` の中を、これだけにします（最初から入っているユーザー作成は消して OK）。
 
@@ -506,7 +548,31 @@ docker compose exec app php artisan migrate:fresh --seed
 docker compose exec app php artisan tinker --execute="echo App\Models\Post::count();"
 ```
 
-`5` と出れば成功です。→ commit → push → PR（`closes #3`）。
+`5` と出れば成功です。反応も確認します。
+
+```bash
+docker compose exec app php artisan tinker --execute="echo App\Models\Reaction::count();"
+```
+
+`61` と出れば成功です（プロトタイプの反応の合計）。→ commit → push → PR（`closes #3`）。
+
+---
+
+## セットアップのあと：プロトタイプとの対応
+
+ここまでで「土台」は完成です。このあと各自が作るものと、プロトタイプ（バージョン10）の動きの対応です。API の JSON の形は README「8. 設計図」のまま変えません。下の動きは **すべて画面の JS だけで作れます**。
+
+| 画面 | プロトタイプの動き | 担当 / Issue |
+| --- | --- | --- |
+| 参加者 | 一覧は **古い順（新しい投稿が一番下）**。開いたら一番下を表示 | B / #10 |
+| 参加者 | 新しい投稿が来ても読んでいる位置はずれない。未読の最初の投稿の上に **「ここから未読」の線**（未読が残っている間は動かさない） | B / #10 |
+| 参加者 | タブ（一覧・質問・感想）に **「未読N」**。カードが画面に6割以上映ったら「読んだ」にして数を減らす | B / #10 |
+| 参加者 | 記入欄は最初は出さない。**「質問する」「感想を書く」を押したら出る**。送信したら閉じる | B / #4・#10 |
+| 参加者・講演者 | 講演タイトルは出さない | B・C / #4・#6 |
+| スクリーン | 質問の青い帯は **半透明**（後ろの映像が透ける） | C / #12 |
+| 講演者 | 質問は **届いた順**（反応の多い順に並べ替えない）。`#1` `#2` の番号つき。回答中の質問だけ一番上 | C / #13 |
+| 講演者 | 質問／感想のタブ。感想タブに「+N 新着」。1行を小さくしてたくさん表示 | C / #6・#13 |
+| 全画面 | 参加者は3秒ごと、スクリーン・講演者は2秒ごとに `/api/state`。タブが裏にあるときは止める | B・C |
 
 ---
 
@@ -562,6 +628,7 @@ http://localhost:8080/ が開けば準備完了です。
 | `no such service: app` | サービス名がちがう → `docker-compose.yml` の `services:` の名前に置きかえる |
 | `SQLSTATE[HY000] [2002] Connection refused` | `.env` の `DB_HOST` が `localhost` / `127.0.0.1` になっている → DB のサービス名（例: `db`）に |
 | `Access denied for user` | `.env` の `DB_USERNAME` / `DB_PASSWORD` が `docker-compose.yml` とちがう |
+| シーダーで `Incorrect string value`（絵文字のところ） | 文字コードが `utf8mb4` になっていない → `.env` に `DB_CHARSET` や `DB_COLLATION` を書いていたら消す（Laravel の最初の設定は `utf8mb4`）→ `migrate:fresh --seed` |
 | `.env` を直したのに変わらない | `docker compose exec app php artisan config:clear` |
 | `No application encryption key` | `docker compose exec app php artisan key:generate` |
 | `Class "App\Http\Controllers\PostController" not found` | コントローラーを作る前に `web.php` に書いた／名前の打ち間違い → [手順 4](#4-コントローラーを作る2個) |
