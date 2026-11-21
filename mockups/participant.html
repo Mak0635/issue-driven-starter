@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>参加者 | MU TALK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<!--
+  参加者画面（見た目だけ / JS なし）  Issue #4
+  - CSS は書かず、Tailwind の class だけで作っています
+  - 色はプロトタイプと同じ色を [#2F6FD6] のように直接指定しています
+  - id="..." は、あとで JS（public/js/participant.js）から探すための目印です
+  - aria-pressed / aria-checked / hidden を JS で切り替えるだけで見た目が変わるようにしてあります
+      例: aria-pressed="true" にすると aria-pressed:bg-white が効いて白くなる
+  Laravel ができたら、<body> の中身を participant.blade.php の @section('content') に移します
+-->
+<body class="bg-[#D7E1EF] font-['Noto_Sans_JP',sans-serif] text-[#0F2547]">
+  <div class="mx-auto flex min-h-screen max-w-md flex-col bg-[#EEF3FA]">
+
+    <!-- ===== 上: アプリ名（講演タイトルは出さない） ===== -->
+    <header class="px-4 pb-2 pt-4">
+      <div class="flex items-center justify-between">
+        <span class="font-['Inter',sans-serif] text-xs font-extrabold tracking-[.12em] text-[#2F6FD6]">MU TALK</span>
+        <span class="rounded-full bg-[#DCE8F8] px-2.5 py-0.5 text-[11px] font-bold text-[#1B4FA8]">● LIVE</span>
+      </div>
+      <p class="mt-0.5 text-[11px] text-[#4F607C]">投稿は匿名で表示されます</p>
+    </header>
+
+    <!-- ===== スクロールしても上に残る部分（いま回答中 + タブ） ===== -->
+    <div class="sticky top-0 z-10 bg-[#EEF3FA] pt-2.5 shadow-[0_10px_14px_-12px_rgba(27,79,168,.35)]">
+
+      <!-- いま回答中の質問がある時 -->
+      <section id="nowBox" aria-label="いま回答中の質問"
+        class="mx-3.5 mb-2.5 flex flex-col gap-2.5 rounded-[20px] border border-white bg-[#E7EDF6] p-3 shadow-[0_10px_26px_-16px_rgba(27,79,168,.45)]">
+        <span class="self-start rounded-full bg-[#1B4FA8] px-2.5 py-1 text-[11px] font-bold text-white">いま回答中</span>
+        <p id="nowText" class="text-sm font-bold leading-relaxed">失敗した時、どうやって立ち直りましたか？</p>
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-xs font-bold leading-relaxed text-[#3D4F6E]">この質問、<br>あなたも気になる？</p>
+          <div class="flex gap-4" role="group" aria-label="いまの質問への気持ち">
+
+            <!-- 👍 私も聞きたい（押したら aria-pressed="true"） -->
+            <div class="flex flex-col items-center gap-1">
+              <button id="likeBtn" type="button" aria-pressed="false" aria-label="私も聞きたい"
+                class="group flex h-12 w-12 items-center justify-center rounded-full bg-[#E7EDF6] shadow-[4px_5px_10px_rgba(166,182,210,.6),-4px_-4px_9px_rgba(255,255,255,.95)] transition active:scale-95 aria-pressed:shadow-[inset_3px_3px_7px_rgba(166,182,210,.6),inset_-3px_-3px_7px_rgba(255,255,255,.95)]">
+                <span class="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-gradient-to-br from-[#68AFEB] to-[#7AC6F2] group-aria-pressed:from-[#2F6FD6] group-aria-pressed:to-[#4C8CD1]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                </span>
+              </button>
+              <span class="whitespace-nowrap text-[11px] font-bold text-[#3D4F6E]">私も聞きたい <span id="likeCount" class="font-['Inter',sans-serif] font-extrabold">18</span></span>
+            </div>
+
+            <!-- ❤️ 共感 -->
+            <div class="flex flex-col items-center gap-1">
+              <button id="heartBtn" type="button" aria-pressed="false" aria-label="共感"
+                class="group flex h-12 w-12 items-center justify-center rounded-full bg-[#E7EDF6] shadow-[4px_5px_10px_rgba(166,182,210,.6),-4px_-4px_9px_rgba(255,255,255,.95)] transition active:scale-95 aria-pressed:shadow-[inset_3px_3px_7px_rgba(166,182,210,.6),inset_-3px_-3px_7px_rgba(255,255,255,.95)]">
+                <span class="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-gradient-to-br from-[#F08BA8] to-[#F6B3C6] group-aria-pressed:from-[#D63D66] group-aria-pressed:to-[#E2557A]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                </span>
+              </button>
+              <span class="whitespace-nowrap text-[11px] font-bold text-[#A3264A]">共感 <span id="heartCount" class="font-['Inter',sans-serif] font-extrabold">7</span></span>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- いま回答中の質問がない時（JS で nowBox と入れかえる） -->
+      <div id="nowWaiting" hidden
+        class="mx-3.5 mb-2.5 rounded-[18px] border-[1.5px] border-dashed border-[#C9D9F1] p-3.5 text-xs leading-relaxed text-[#4F607C]">
+        講演者が質問に答え始めると、ここに表示されます。<br>そのとき「私も聞きたい」「共感」を送れます。
+      </div>
+
+      <!-- タブ（押したボタンを aria-pressed="true" に） -->
+      <nav id="tabs" aria-label="表示の切り替え" class="mx-3.5 mb-2.5 grid grid-cols-3 gap-1 rounded-full bg-[#DCE6F4] p-1">
+        <button type="button" data-f="all" aria-pressed="true"
+          class="h-[34px] rounded-full text-xs font-bold text-[#3D4F6E] aria-pressed:bg-white aria-pressed:text-[#0F2547] aria-pressed:shadow-[0_2px_8px_rgba(27,79,168,.15)]">
+          一覧<span id="ua" class="ml-1 rounded-full bg-[#E2557A] px-1.5 py-px font-['Inter',sans-serif] text-[10px] font-extrabold text-white">未読1</span>
+        </button>
+        <button type="button" data-f="q" aria-pressed="false"
+          class="h-[34px] rounded-full text-xs font-bold text-[#3D4F6E] aria-pressed:bg-white aria-pressed:text-[#0F2547] aria-pressed:shadow-[0_2px_8px_rgba(27,79,168,.15)]">
+          質問 <span id="cq" class="font-['Inter',sans-serif] font-extrabold">3</span><span id="uq" hidden class="ml-1 rounded-full bg-[#E2557A] px-1.5 py-px font-['Inter',sans-serif] text-[10px] font-extrabold text-white">未読0</span>
+        </button>
+        <button type="button" data-f="c" aria-pressed="false"
+          class="h-[34px] rounded-full text-xs font-bold text-[#3D4F6E] aria-pressed:bg-white aria-pressed:text-[#0F2547] aria-pressed:shadow-[0_2px_8px_rgba(27,79,168,.15)]">
+          感想 <span id="cc" class="font-['Inter',sans-serif] font-extrabold">2</span><span id="uc" class="ml-1 rounded-full bg-[#E2557A] px-1.5 py-px font-['Inter',sans-serif] text-[10px] font-extrabold text-white">未読1</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ===== 投稿の一覧（古い順。新しい投稿は一番下に足す） ===== -->
+    <!-- JS ではこの中身を作り直します。下のカードは見た目の見本です -->
+    <main id="list" class="flex flex-1 flex-col gap-2 px-3.5 pb-3.5 pt-1">
+
+      <!-- 見本1: 質問（回答中） -->
+      <article data-id="1" class="flex flex-col gap-2 rounded-[18px] bg-white px-3.5 py-3 shadow-[0_8px_24px_-14px_rgba(27,79,168,.3)]">
+        <div class="flex items-center gap-1.5">
+          <span class="rounded-full bg-[#DCE8F8] px-2 py-0.5 text-[11px] font-bold text-[#1B4FA8]">質問</span>
+          <span class="rounded-full bg-[#E3EBF7] px-2 py-0.5 text-[11px] font-bold text-[#3D4F6E]">回答中</span>
+        </div>
+        <p class="break-words text-[13px] font-medium leading-relaxed">失敗した時、どうやって立ち直りましたか？</p>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <!-- 絵文字チップ: 自分が押したものは aria-pressed="true" -->
+          <button type="button" data-react="1" data-e="🤔" aria-pressed="true"
+            class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]">
+            <span aria-hidden="true">🤔</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">3</span>
+          </button>
+          <button type="button" data-react="1" data-e="👀" aria-pressed="false"
+            class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]">
+            <span aria-hidden="true">👀</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">4</span>
+          </button>
+          <!-- ＋ボタン（絵文字を選ぶ箱を開く） -->
+          <button type="button" data-add="1" aria-label="リアクションを追加" aria-expanded="true"
+            class="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] text-[#4F607C]">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11v1a10 10 0 1 1-9-10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M16 5h6"/><path d="M19 2v6"/></svg>
+          </button>
+        </div>
+        <!-- 絵文字を選ぶ箱（＋を押した時だけ出す。見本として開いた状態） -->
+        <div role="group" aria-label="リアクションを選ぶ" class="flex flex-wrap gap-1 rounded-[14px] bg-[#EEF3FA] p-1.5">
+          <button type="button" data-pick="1" data-e="👀" class="h-9 w-9 rounded-[10px] bg-white text-lg">👀</button>
+          <button type="button" data-pick="1" data-e="💡" class="h-9 w-9 rounded-[10px] bg-white text-lg">💡</button>
+          <button type="button" data-pick="1" data-e="🙌" class="h-9 w-9 rounded-[10px] bg-white text-lg">🙌</button>
+          <button type="button" data-pick="1" data-e="🤔" class="h-9 w-9 rounded-[10px] bg-white text-lg">🤔</button>
+          <button type="button" data-pick="1" data-e="💯" class="h-9 w-9 rounded-[10px] bg-white text-lg">💯</button>
+          <button type="button" data-pick="1" data-e="😂" class="h-9 w-9 rounded-[10px] bg-white text-lg">😂</button>
+          <button type="button" data-pick="1" data-e="👏" class="h-9 w-9 rounded-[10px] bg-white text-lg">👏</button>
+          <button type="button" data-pick="1" data-e="🔥" class="h-9 w-9 rounded-[10px] bg-white text-lg">🔥</button>
+        </div>
+      </article>
+
+      <!-- 見本2: 質問 -->
+      <article data-id="2" class="flex flex-col gap-2 rounded-[18px] bg-white px-3.5 py-3 shadow-[0_8px_24px_-14px_rgba(27,79,168,.3)]">
+        <div class="flex items-center gap-1.5">
+          <span class="rounded-full bg-[#DCE8F8] px-2 py-0.5 text-[11px] font-bold text-[#1B4FA8]">質問</span>
+        </div>
+        <p class="break-words text-[13px] font-medium leading-relaxed">今の仕事を選んだ決め手は何でしたか？迷った選択肢があれば知りたいです。</p>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button type="button" data-react="2" data-e="👀" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">👀</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">5</span></button>
+          <button type="button" data-react="2" data-e="💡" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">💡</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">3</span></button>
+          <button type="button" data-react="2" data-e="🙌" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">🙌</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">2</span></button>
+          <button type="button" data-add="2" aria-label="リアクションを追加" aria-expanded="false" class="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] text-[#4F607C]"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11v1a10 10 0 1 1-9-10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M16 5h6"/><path d="M19 2v6"/></svg></button>
+        </div>
+      </article>
+
+      <!-- 見本3: 感想 -->
+      <article data-id="3" class="flex flex-col gap-2 rounded-[18px] bg-white px-3.5 py-3 shadow-[0_8px_24px_-14px_rgba(27,79,168,.3)]">
+        <div class="flex items-center gap-1.5">
+          <span class="rounded-full bg-[#FCE4EB] px-2 py-0.5 text-[11px] font-bold text-[#A3264A]">感想</span>
+        </div>
+        <p class="break-words text-[13px] font-medium leading-relaxed">「完璧より先に出す」は自分にも刺さった。まず提出してみる。</p>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button type="button" data-react="3" data-e="💯" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">💯</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">6</span></button>
+          <button type="button" data-react="3" data-e="🙌" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">🙌</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">4</span></button>
+          <button type="button" data-react="3" data-e="😂" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">😂</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">1</span></button>
+          <button type="button" data-add="3" aria-label="リアクションを追加" aria-expanded="false" class="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] text-[#4F607C]"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11v1a10 10 0 1 1-9-10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M16 5h6"/><path d="M19 2v6"/></svg></button>
+        </div>
+      </article>
+
+      <!-- 見本4: 質問 -->
+      <article data-id="4" class="flex flex-col gap-2 rounded-[18px] bg-white px-3.5 py-3 shadow-[0_8px_24px_-14px_rgba(27,79,168,.3)]">
+        <div class="flex items-center gap-1.5">
+          <span class="rounded-full bg-[#DCE8F8] px-2 py-0.5 text-[11px] font-bold text-[#1B4FA8]">質問</span>
+        </div>
+        <p class="break-words text-[13px] font-medium leading-relaxed">チームで意見がぶつかった時、どう決めていましたか？</p>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button type="button" data-react="4" data-e="🤔" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">🤔</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">4</span></button>
+          <button type="button" data-react="4" data-e="👀" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">👀</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">2</span></button>
+          <button type="button" data-add="4" aria-label="リアクションを追加" aria-expanded="false" class="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] text-[#4F607C]"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11v1a10 10 0 1 1-9-10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M16 5h6"/><path d="M19 2v6"/></svg></button>
+        </div>
+      </article>
+
+      <!-- 「ここから未読」の線（まだ読んでいない一番古い投稿の上に1本だけ出す） -->
+      <div role="separator" class="my-1 flex items-center gap-2.5 whitespace-nowrap text-[11px] font-bold text-[#A3264A]">
+        <span class="h-[1.5px] flex-1 bg-[#E2557A]/60"></span>ここから未読<span class="h-[1.5px] flex-1 bg-[#E2557A]/60"></span>
+      </div>
+
+      <!-- 見本5: 感想（未読） -->
+      <article data-id="5" class="flex flex-col gap-2 rounded-[18px] bg-white px-3.5 py-3 shadow-[0_8px_24px_-14px_rgba(27,79,168,.3)]">
+        <div class="flex items-center gap-1.5">
+          <span class="rounded-full bg-[#FCE4EB] px-2 py-0.5 text-[11px] font-bold text-[#A3264A]">感想</span>
+        </div>
+        <p class="break-words text-[13px] font-medium leading-relaxed">わかる、自分もそこで迷った</p>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button type="button" data-react="5" data-e="👏" aria-pressed="false" class="inline-flex h-[30px] items-center gap-1 rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] px-2 text-sm text-[#3D4F6E] aria-pressed:border-[#2F6FD6] aria-pressed:bg-[#DCE8F8] aria-pressed:text-[#1B4FA8]"><span aria-hidden="true">👏</span><span class="font-['Inter',sans-serif] text-xs font-extrabold">2</span></button>
+          <button type="button" data-add="5" aria-label="リアクションを追加" aria-expanded="false" class="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full border-[1.5px] border-[#D6E2F3] bg-[#F4F8FE] text-[#4F607C]"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11v1a10 10 0 1 1-9-10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M16 5h6"/><path d="M19 2v6"/></svg></button>
+        </div>
+      </article>
+
+      <!-- 投稿が0件の時（JS で出す） -->
+      <p id="empty" hidden class="px-0.5 py-2 text-[13px] text-[#4F607C]">まだ投稿がありません。</p>
+    </main>
+
+    <!-- ===== 下に固定: 投稿フォーム ===== -->
+    <form id="form" class="sticky bottom-0 z-20 flex flex-col gap-2 bg-white px-3.5 pb-3 pt-2.5 shadow-[0_-10px_30px_-20px_rgba(27,79,168,.5)]">
+
+      <!-- 種類を選ぶボタン（選んだ方を aria-checked="true" にして、記入欄を出す） -->
+      <div role="radiogroup" aria-label="投稿の種類" class="flex gap-1.5">
+        <button type="button" role="radio" data-t="q" aria-checked="false"
+          class="h-11 flex-1 rounded-full border-[1.5px] border-[#C9D9F1] bg-white text-sm font-bold text-[#3D4F6E] aria-checked:border-[#2F6FD6] aria-checked:bg-[#2F6FD6] aria-checked:text-white">質問する</button>
+        <button type="button" role="radio" data-t="c" aria-checked="false"
+          class="h-11 flex-1 rounded-full border-[1.5px] border-[#C9D9F1] bg-white text-sm font-bold text-[#3D4F6E] aria-checked:border-[#E2557A] aria-checked:bg-[#E2557A] aria-checked:text-white">感想を書く</button>
+      </div>
+
+      <!-- 記入欄と送信ボタン（最初は hidden。種類を選んだら JS で hidden を外す）
+           ※ hidden をつける要素に flex などの display の class をつけると、hidden が効かなくなる。
+             だから外側の div には class をつけず、中の div で並べている -->
+      <div id="composeBody" hidden>
+      <div class="flex flex-col gap-2">
+        <label>
+          <span class="sr-only">投稿の内容</span>
+          <textarea id="text" rows="3" maxlength="120" placeholder="講演者に聞きたいことは？"
+            class="block h-[84px] w-full resize-none rounded-[14px] border-0 bg-[#EEF3FA] px-3 py-2.5 text-[13px] leading-relaxed text-[#0F2547] placeholder:text-[#4F607C] focus:outline focus:outline-2 focus:outline-[#2F6FD6]"></textarea>
+        </label>
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[11px] text-[#4F607C]">
+            <kbd class="rounded-[5px] border border-[#C9D9F1] bg-[#EEF3FA] px-1 font-['Inter',sans-serif] text-[10px] font-bold">Enter</kbd> 送信 ・
+            <kbd class="rounded-[5px] border border-[#C9D9F1] bg-[#EEF3FA] px-1 font-['Inter',sans-serif] text-[10px] font-bold">Shift</kbd>+<kbd class="rounded-[5px] border border-[#C9D9F1] bg-[#EEF3FA] px-1 font-['Inter',sans-serif] text-[10px] font-bold">Enter</kbd> 改行
+          </span>
+          <button id="send" type="submit" disabled
+            class="ml-auto h-[38px] rounded-full bg-[#1B4FA8] px-[18px] text-[13px] font-bold text-white disabled:cursor-default disabled:bg-[#9DB3D6]">送信</button>
+        </div>
+      </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- 送信したときに下に少し出るお知らせ（JS で opacity-0 ↔ opacity-100 を切り替える） -->
+  <div id="toast" role="status" aria-live="polite"
+    class="pointer-events-none fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-[#0F2547] px-4 py-2.5 text-[13px] font-bold text-white opacity-0 transition-opacity">
+    質問を送りました（匿名）
+  </div>
+</body>
+</html>
