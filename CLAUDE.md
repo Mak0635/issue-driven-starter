@@ -18,11 +18,11 @@
 ## ファイルの持ち主
 | ファイル | 担当 |
 | --- | --- |
-| `routes/web.php`、`app/`、`database/` | スクリーン＋裏側担当 |
+| `routes/web.php`、`app/`、`database/`、`public/js/api.js` | スクリーン＋裏側担当 |
 | `resources/views/screen.blade.php`、`public/js/screen.js` | スクリーン＋裏側担当 |
 | `resources/views/participant.blade.php`、`public/js/participant.js`、`mockups/participant.html` | 参加者担当 |
 | `resources/views/speaker.blade.php`、`public/js/speaker.js` | 講演者＋まとめ役 |
-| `resources/views/layouts/app.blade.php`、`public/js/api.js`、`README.md`、`docs/` | 講演者＋まとめ役 |
+| `resources/views/layouts/app.blade.php`、`README.md`、`docs/` | 講演者＋まとめ役 |
 
 ## 書き方
 - fetch は `public/js/api.js` の `getState()` / `post()` / `startPolling()` を使う（各画面で fetch を書き直さない）
